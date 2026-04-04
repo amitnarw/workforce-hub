@@ -1,0 +1,48 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./App.{js,ts,tsx}",
+    "./src/**/*.{js,ts,tsx}",
+  ],
+  presets: [require("nativewind/preset")],
+  theme: {
+    extend: {
+      colors: {
+        primary: "#24389c",
+        "primary-container": "#3f51b5",
+        "on-primary": "#ffffff",
+        "on-primary-container": "#cacfff",
+        secondary: "#565c84",
+        "secondary-container": "#c9cffd",
+        "on-secondary": "#ffffff",
+        "on-secondary-container": "#51577f",
+        tertiary: "#6c3400",
+        "tertiary-container": "#8f4700",
+        "on-tertiary": "#ffffff",
+        "on-tertiary-container": "#ffc7a2",
+        error: "#ba1a1a",
+        "error-container": "#ffdad6",
+        "on-error": "#ffffff",
+        "on-error-container": "#93000a",
+        surface: "#f8f9fa",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f3f4f5",
+        "surface-container": "#edeeef",
+        "surface-container-high": "#e7e8e9",
+        "surface-container-highest": "#e1e3e4",
+        "on-surface": "#191c1d",
+        "on-surface-variant": "#454652",
+        background: "#f8f9fa",
+        "on-background": "#191c1d",
+        outline: "#757684",
+        "outline-variant": "#c5c5d4",
+      },
+      fontFamily: {
+        headline: ["Manrope"],
+        body: ["Inter"],
+        label: ["Inter"],
+      },
+    },
+  },
+  plugins: [],
+};

@@ -1,0 +1,44 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm start:*)",
+      "Bash(ls *.config.js)",
+      "WebSearch",
+      "Bash(ls node_modules/nativewind/preset*)",
+      "Bash(npm view:*)",
+      "WebFetch(domain:developers.google.com)",
+      "WebFetch(domain:www.google.com)",
+      "WebFetch(domain:firebase.google.com)",
+      "WebFetch(domain:stitch.withgoogle.com)",
+      "Bash(claude mcp:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Read(//c/Users/Narwal/**)",
+      "mcp__stitch__list_projects",
+      "mcp__stitch__list_screens",
+      "mcp__stitch__get_screen",
+      "WebFetch(domain:contribution.usercontent.google.com)",
+      "Bash(curl -s \"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ6Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpZCiVodG1sXzg3Mjk0M2MwNzk5YTQ4NDE4YTc1MGYxNjFmYWUxNzNlEgsSBxCHgriU7xEYAZIBIgoKcHJvamVjdF9pZBIUQhIxMzUzMDQ3NTYxNjE2OTA3OTg&filename=&opi=89354086\")",
+      "Bash(npx tsc:*)",
+      "Bash(npx expo:*)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8081)",
+      "Bash(taskkill /F /PID 11036)",
+      "Bash(taskkill /F /PID 21252)",
+      "Bash(findstr LISTENING)",
+      "Bash(taskkill /F /PID 26096)",
+      "Bash(node -e ':*)",
+      "Bash(taskkill /F /PID 22248)",
+      "Bash(taskkill //F //PID 22248)",
+      "Read(//c/Users/Narwal/Desktop/data-entry/dataEntry/**)",
+      "Bash(xargs -I{} taskkill //F //PID {})",
+      "Bash(pnpm add:*)",
+      "Bash(taskkill //F //PID 31784)",
+      "Bash(python -c \"import json; data = json.load\\(open\\(r'C:\\\\Users\\\\Narwal\\\\.claude\\\\projects\\\\c--Users-Narwal-Desktop-data-entry-dataEntry\\\\025e306b-674a-491a-8317-4f1bd458fd4b\\\\tool-results\\\\mcp-stitch-list_projects-1775323932356.txt'\\)\\); print\\([p['name'] for p in data['projects']]\\)\")",
+      "mcp__stitch__get_project"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Narwal\\Desktop\\data-entry\\dataEntry\\.claude"
+    ]
+  }
+}
