@@ -1,9 +1,9 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import EmployeeDashboard from "../screens/employee/EmployeeDashboard";
+import AnimatedTabNavigator from "./AnimatedTabNavigator";
 
 export type EmployeeStackParamList = {
-  Dashboard: undefined;
+  MainTabs: undefined;
 };
 
 const Stack = createNativeStackNavigator<EmployeeStackParamList>();
@@ -15,7 +15,7 @@ export default function EmployeeStack() {
         headerShown: false,
       }}
     >
-      <Stack.Screen name="Dashboard" component={EmployeeDashboard} />
+      <Stack.Screen name="MainTabs" component={AnimatedTabNavigator} />
     </Stack.Navigator>
   );
 }

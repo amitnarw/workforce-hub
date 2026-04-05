@@ -39,7 +39,7 @@ const fonts = {
 const DEMO_EMPLOYEE = {
   email: "employee@demo.com",
   password: "demo123",
-  route: "EmployeeDashboard",
+  route: "MainTabs",
 };
 
 const DEMO_TEAM_LEAD = {

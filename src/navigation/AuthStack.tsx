@@ -5,10 +5,12 @@ import SplashScreen from "../screens/auth/SplashScreen";
 import EmployeeDashboard from "../screens/employee/EmployeeDashboard";
 import TeamLeadDashboard from "../screens/lead/TeamLeadDashboard";
 import AdminDashboard from "../screens/admin/AdminDashboard";
+import AnimatedTabNavigator from "./AnimatedTabNavigator";
 
 export type AuthStackParamList = {
   Splash: undefined;
   Login: undefined;
+  MainTabs: undefined;
   EmployeeDashboard: undefined;
   TeamLeadDashboard: undefined;
   AdminDashboard: undefined;
@@ -42,6 +44,7 @@ export default function AuthStack() {
     >
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="MainTabs" component={AnimatedTabNavigator} />
       <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
       <Stack.Screen name="TeamLeadDashboard" component={TeamLeadDashboard} />
       <Stack.Screen name="AdminDashboard" component={AdminDashboard} />

@@ -1,0 +1,95 @@
+import React from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+import CustomTabBar from "../components/ui/CustomTabBar";
+import HomeScreen from "../screens/employee/EmployeeDashboard";
+import AttendanceScreen from "../screens/employee/AttendanceScreen";
+import LeavesScreen from "../screens/employee/LeavesScreen";
+import ProfileScreen from "../screens/employee/ProfileScreen";
+
+export type MainTabParamList = {
+  Home: undefined;
+  Attendance: undefined;
+  Leaves: undefined;
+  Profile: undefined;
+};
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
+const HomeStack = createNativeStackNavigator();
+const AttendanceStack = createNativeStackNavigator();
+const LeavesStack = createNativeStackNavigator();
+const ProfileStack = createNativeStackNavigator();
+
+function HomeStackNavigator() {
+  return (
+    <HomeStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: "fade_from_bottom",
+        animationDuration: 300,
+      }}
+    >
+      <HomeStack.Screen name="HomeMain" component={HomeScreen} />
+    </HomeStack.Navigator>
+  );
+}
+
+function AttendanceStackNavigator() {
+  return (
+    <AttendanceStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+        animationDuration: 300,
+      }}
+    >
+      <AttendanceStack.Screen name="AttendanceMain" component={AttendanceScreen} />
+    </AttendanceStack.Navigator>
+  );
+}
+
+function LeavesStackNavigator() {
+  return (
+    <LeavesStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+        animationDuration: 300,
+      }}
+    >
+      <LeavesStack.Screen name="LeavesMain" component={LeavesScreen} />
+    </LeavesStack.Navigator>
+  );
+}
+
+function ProfileStackNavigator() {
+  return (
+    <ProfileStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+        animationDuration: 300,
+      }}
+    >
+      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+    </ProfileStack.Navigator>
+  );
+}
+
+export default function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: false,
+      }}
+      tabBar={(props) => <CustomTabBar {...props} />}
+    >
+      <Tab.Screen name="Home" component={HomeStackNavigator} />
+      <Tab.Screen name="Attendance" component={AttendanceStackNavigator} />
+      <Tab.Screen name="Leaves" component={LeavesStackNavigator} />
+      <Tab.Screen name="Profile" component={ProfileStackNavigator} />
+    </Tab.Navigator>
+  );
+}
