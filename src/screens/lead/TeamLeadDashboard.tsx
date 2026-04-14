@@ -10,7 +10,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
-import { AppHeader, MetricCard, PrimaryCard, Button } from "../../components/ui";
+import { AppHeader, MetricCard, PrimaryCard, Button, BottomSpacer } from "../../components/ui";
 
 interface PendingSubmission {
   id: string;
@@ -63,7 +63,7 @@ export default function TeamLeadDashboard() {
           <AppHeader
             title="Team Oversight"
             subtitle="Sunday, April 5"
-            rightButtons="both"
+            rightButtons="all"
             onNotificationPress={() => {}}
           />
 
@@ -153,7 +153,7 @@ export default function TeamLeadDashboard() {
             ))}
           </View>
 
-          <View style={styles.bottomSpacer} />
+          <BottomSpacer />
         </ScrollView>
 
         {/* Floating Action Buttons */}
@@ -375,9 +375,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter",
     fontSize: 12,
     fontWeight: "600",
-  },
-  bottomSpacer: {
-    height: 120,
   },
   floatingButtons: {
     position: "absolute",

@@ -10,7 +10,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
-import { AppHeader, MetricCard, PrimaryCard, Button, LineChart } from "../../components/ui";
+import { AppHeader, MetricCard, PrimaryCard, Button, LineChart, BottomSpacer, SectionHeader } from "../../components/ui";
 
 interface MetricCard {
   id: string;
@@ -194,12 +194,7 @@ export default function AdminDashboard() {
 
           {/* Action Required Section */}
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Action Required</Text>
-              <TouchableOpacity>
-                <Text style={[styles.viewAllText, { color: colors.primary }]}>View All Tasks (12)</Text>
-              </TouchableOpacity>
-            </View>
+            <SectionHeader title="Action Required" rightText="View All Tasks (12)" />
 
             {actionItems.map((item) => (
               <View key={item.id} style={[styles.actionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
@@ -261,7 +256,7 @@ export default function AdminDashboard() {
             />
           </View>
 
-          <View style={styles.bottomSpacer} />
+          <BottomSpacer />
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -416,11 +411,6 @@ const styles = StyleSheet.create({
     fontFamily: "Manrope",
     fontSize: 18,
     fontWeight: "600",
-  },
-  viewAllText: {
-    fontFamily: "Inter",
-    fontSize: 14,
-    fontWeight: "500",
   },
   actionCard: {
     flexDirection: "row",
@@ -580,5 +570,8 @@ const styles = StyleSheet.create({
     fontFamily: "Inter",
     fontSize: 14,
     fontWeight: "500",
+  },
+  metricCardWrapper: {
+    width: "47%",
   },
 });

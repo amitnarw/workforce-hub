@@ -18,17 +18,23 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0d1b4b"
+        "backgroundColor": "#fcba03"
       },
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.dataEntry"
+      "package": "com.anonymous.dataEntry",
+      "statusBarColor": "#fcba03"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3838aa60-3d7f-4564-b20e-35abc2551417"
+      }
+    }
   }
 }

@@ -1,34 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import CustomTabBar from "../components/ui/CustomTabBar";
-import HomeScreen from "../screens/employee/EmployeeDashboard";
-import AttendanceScreen from "../screens/employee/AttendanceScreen";
-import LeavesScreen from "../screens/employee/LeavesScreen";
-import ProfileScreen from "../screens/employee/ProfileScreen";
-import TeamLeadDashboard from "../screens/lead/TeamLeadDashboard";
-import AdminDashboard from "../screens/admin/AdminDashboard";
+const SCREEN_WIDTH = Dimensions.get("window").width;
 
-const SCREENS = [HomeScreen, AttendanceScreen, LeavesScreen, ProfileScreen, TeamLeadDashboard, AdminDashboard];
-const SCREEN_NAMES = ["Home", "Attendance", "Leaves", "Profile", "Team", "Admin"];
+import CustomTabBar from "../components/ui/CustomTabBar";
+import Sidebar from "../components/ui/Sidebar";
+import HomeScreen from "../screens/employee/EmployeeDashboard";
+import LeadsScreen from "../screens/employee/LeadsScreen";
+import EarningsScreen from "../screens/employee/EarningsScreen";
+import ProfileScreen from "../screens/employee/ProfileScreen";
+import { useTabAnimation } from "../hooks/useTabAnimation";
+
+const SCREENS = [HomeScreen, LeadsScreen, EarningsScreen, ProfileScreen];
+const SCREEN_NAMES = ["Home", "Leads", "Earnings", "Profile"];
 
 export default function AnimatedTabNavigator() {
   const insets = useSafeAreaInsets();
   const [activeIndex, setActiveIndex] = useState(0);
-  const translateX = useSharedValue(0);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const { animatedStyle, scrollToIndex } = useTabAnimation(0);
 
   useEffect(() => {
-    translateX.value = withTiming(-activeIndex * Dimensions.get("window").width, {
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-    });
+    scrollToIndex(activeIndex);
   }, [activeIndex]);
 
   const handleTabPress = (routeName: string) => {
@@ -38,10 +33,6 @@ export default function AnimatedTabNavigator() {
     }
   };
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
   const tabBarState = {
     index: activeIndex,
     routes: SCREEN_NAMES.map((name) => ({ key: name, name })),
@@ -50,9 +41,7 @@ export default function AnimatedTabNavigator() {
   const tabBarDescriptors = Object.fromEntries(
     SCREEN_NAMES.map((name) => [
       name,
-      {
-        options: { tabBarAccessibilityLabel: name },
-      },
+      { options: { tabBarAccessibilityLabel: name } },
     ])
   );
 
@@ -62,18 +51,37 @@ export default function AnimatedTabNavigator() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <Animated.View style={[styles.screensContainer, animatedStyle]}>
-        {SCREENS.map((ScreenComponent, index) => (
-          <View key={SCREEN_NAMES[index]} style={styles.screen}>
-            <ScreenComponent />
-          </View>
-        ))}
-      </Animated.View>
+    <View style={styles.container}>
+      {/* Screen area clips the horizontally scrolling row */}
+      <View style={styles.screenArea}>
+        <Animated.View style={[styles.screensRow, animatedStyle]}>
+          {SCREENS.map((ScreenComponent, index) => (
+            <View key={SCREEN_NAMES[index]} style={[styles.screen, { width: SCREEN_WIDTH }]}>
+              {index === 0 ? (
+                <ScreenComponent onMenuPress={() => setSidebarVisible(true)} />
+              ) : (
+                <ScreenComponent />
+              )}
+            </View>
+          ))}
+        </Animated.View>
+      </View>
+
       <CustomTabBar
         state={tabBarState as any}
         descriptors={tabBarDescriptors as any}
         navigation={tabBarNavigation as any}
+        insets={insets as any}
+      />
+
+      {/* Sidebar rendered at navigator level — covers everything including CustomTabBar */}
+      <Sidebar
+        visible={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+        onNavigate={(screenName) => {
+          handleTabPress(screenName);
+          setSidebarVisible(false);
+        }}
       />
     </View>
   );
@@ -83,12 +91,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  screensContainer: {
+  screenArea: {
+    flex: 1,
+    overflow: "hidden",
+  },
+  screensRow: {
     flex: 1,
     flexDirection: "row",
   },
   screen: {
-    width: Dimensions.get("window").width,
+    width: SCREEN_WIDTH,
     flexShrink: 0,
   },
 });

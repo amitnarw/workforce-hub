@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const SCREEN_WIDTH = Dimensions.get("window").width;
 
 import CustomTabBar from "../components/ui/CustomTabBar";
 import AdminDashboard from "../screens/admin/AdminDashboard";
+import { useTabAnimation } from "../hooks/useTabAnimation";
 
 const SCREENS = [AdminDashboard];
 const SCREEN_NAMES = ["Dashboard"];
@@ -17,13 +15,10 @@ const SCREEN_NAMES = ["Dashboard"];
 export default function AdminTabNavigator() {
   const insets = useSafeAreaInsets();
   const [activeIndex, setActiveIndex] = useState(0);
-  const translateX = useSharedValue(0);
+  const { animatedStyle, scrollToIndex } = useTabAnimation(0);
 
   useEffect(() => {
-    translateX.value = withTiming(-activeIndex * Dimensions.get("window").width, {
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-    });
+    scrollToIndex(activeIndex);
   }, [activeIndex]);
 
   const handleTabPress = (routeName: string) => {
@@ -33,10 +28,6 @@ export default function AdminTabNavigator() {
     }
   };
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
   const tabBarState = {
     index: activeIndex,
     routes: SCREEN_NAMES.map((name) => ({ key: name, name })),
@@ -45,9 +36,7 @@ export default function AdminTabNavigator() {
   const tabBarDescriptors = Object.fromEntries(
     SCREEN_NAMES.map((name) => [
       name,
-      {
-        options: { tabBarAccessibilityLabel: name },
-      },
+      { options: { tabBarAccessibilityLabel: name } },
     ])
   );
 
@@ -58,13 +47,16 @@ export default function AdminTabNavigator() {
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <Animated.View style={[styles.screensContainer, animatedStyle]}>
-        {SCREENS.map((ScreenComponent, index) => (
-          <View key={SCREEN_NAMES[index]} style={styles.screen}>
-            <ScreenComponent />
-          </View>
-        ))}
-      </Animated.View>
+      <View style={styles.screenArea}>
+        <Animated.View style={[styles.screensRow, animatedStyle]}>
+          {SCREENS.map((ScreenComponent, index) => (
+            <View key={SCREEN_NAMES[index]} style={[styles.screen, { width: SCREEN_WIDTH }]}>
+              <ScreenComponent />
+            </View>
+          ))}
+        </Animated.View>
+      </View>
+
       <CustomTabBar
         state={tabBarState as any}
         descriptors={tabBarDescriptors as any}
@@ -78,12 +70,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  screensContainer: {
+  screenArea: {
+    flex: 1,
+    overflow: "hidden",
+  },
+  screensRow: {
     flex: 1,
     flexDirection: "row",
   },
   screen: {
-    width: Dimensions.get("window").width,
+    width: SCREEN_WIDTH,
     flexShrink: 0,
   },
 });

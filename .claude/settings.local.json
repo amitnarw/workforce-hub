@@ -62,7 +62,27 @@
       "Bash(node -e \"require\\('@babel/core'\\).transformFileSync\\('./src/screens/admin/AdminDashboard.tsx', {presets: ['@babel/preset-typescript', '@babel/preset-react']}\\)\")",
       "Read(//mnt/c/Users/Narwal/Documents/Downloads/**)",
       "WebFetch(domain:minimax-algeng-chat-tts-us.oss-us-east-1.aliyuncs.com)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\([p.get\\('name',''\\) for p in d.get\\('projects',[]\\)[:10]]\\)\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(p.get\\('name',''\\) + ' | ' + p.get\\('displayName',p.get\\('name',''\\)\\)\\) for p in d.get\\('projects',[]\\)[:20]]\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Total projects:', len\\(d.get\\('projects',[]\\)\\)\\); [print\\(p.get\\('name',''\\)[:50]\\) for p in d.get\\('projects',[]\\) if 'lead' in str\\(p\\).lower\\(\\)]\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(p.get\\('name',''\\)[:80]\\) for p in d.get\\('projects',[]\\)]\")",
+      "Bash(python -c \"import sys,json,re; content=sys.stdin.read\\(\\); matches=re.findall\\(r'.{0,30}leadmaster.{0,30}', content, re.IGNORECASE\\); [print\\(m\\) for m in matches[:5]]\")",
+      "mcp__stitch__list_design_systems",
+      "Bash(npm list:*)",
+      "Bash(./gradlew assembleDebug)",
+      "WebFetch(domain:dribbble.com)",
+      "Bash(grep -n \"AppHeader\\\\|MetricCard\" src/components/ui/index.ts)",
+      "Bash(cat src/components/ui/index.ts)",
+      "Bash(sed -n '75,100p' src/screens/employee/LeadHistoryScreen.tsx)",
+      "Bash(sed -n '190,220p' src/screens/employee/LeadHistoryScreen.tsx)",
+      "Bash(sed -n '/styles/,/^}/p' src/navigation/TeamLeadTabNavigator.tsx)",
+      "Bash(sed -n '/styles/,/^}/p' src/navigation/AdminTabNavigator.tsx)",
+      "Bash(sed -n '63,80p' src/navigation/AnimatedTabNavigator.tsx)",
+      "Bash(sed -n '82,100p' src/navigation/AnimatedTabNavigator.tsx)",
+      "Bash(npm ls:*)",
+      "Bash(ls -la node_modules/react-native-css-interop/node_modules/lightningcss/node/*.node)",
+      "Bash(npm uninstall:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Narwal\\Desktop\\data-entry\\dataEntry\\.claude"

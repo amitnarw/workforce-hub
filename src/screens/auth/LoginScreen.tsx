@@ -14,26 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-
-// Design Tokens from Stitch
-const colors = {
-  primary: "#24389c",
-  "primary-container": "#3f51b5",
-  "surface-container-lowest": "#ffffff",
-  "surface-container-high": "#e7e8e9",
-  "surface-container-low": "#f3f4f5",
-  "on-surface": "#191c1d",
-  "on-surface-variant": "#454652",
-  outline: "#757684",
-  "outline-variant": "#c5c5d4",
-  surface: "#f8f9fa",
-};
-
-const fonts = {
-  headline: "Manrope",
-  body: "Manrope",
-  label: "Manrope",
-};
+import { useTheme } from "../../context/ThemeContext";
 
 // Demo credentials
 const DEMO_EMPLOYEE = {
@@ -55,31 +36,40 @@ const DEMO_ADMIN = {
 };
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
+  const { colors } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
-    if (email === DEMO_EMPLOYEE.email && password === DEMO_EMPLOYEE.password) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: DEMO_EMPLOYEE.route }],
-      });
-    } else if (email === DEMO_TEAM_LEAD.email && password === DEMO_TEAM_LEAD.password) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: DEMO_TEAM_LEAD.route }],
-      });
-    } else if (email === DEMO_ADMIN.email && password === DEMO_ADMIN.password) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: DEMO_ADMIN.route }],
-      });
+    if (email && password) {
+      if (email === DEMO_EMPLOYEE.email && password === DEMO_EMPLOYEE.password) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: DEMO_EMPLOYEE.route }],
+        });
+      } else if (email === DEMO_TEAM_LEAD.email && password === DEMO_TEAM_LEAD.password) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: DEMO_TEAM_LEAD.route }],
+        });
+      } else if (email === DEMO_ADMIN.email && password === DEMO_ADMIN.password) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: DEMO_ADMIN.route }],
+        });
+      } else {
+        Alert.alert(
+          "Login Failed",
+          "Invalid credentials.\n\nDemo accounts:\n• employee@demo.com / demo123\n• lead@demo.com / lead123\n• admin@demo.com / admin123"
+        );
+      }
     } else {
-      Alert.alert(
-        "Login Failed",
-        "Invalid credentials.\n\nDemo accounts:\n• employee@demo.com / demo123\n• lead@demo.com / lead123\n• admin@demo.com / admin123"
-      );
+      // Bypass login — go to employee dashboard by default
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainTabs" }],
+      });
     }
   };
 
@@ -103,31 +93,32 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <View style={styles.mainContainer}>
           <View style={styles.contentWrapper}>
-            {/* Brand Section */}
-            <View style={styles.brandSection}>
-              <View style={styles.logoContainer}>
-                <MaterialIcons name="work" size={32} color="#ffffff" />
-              </View>
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>Workforce Hub</Text>
-                <Text style={styles.subtitle}>Access your operational dashboard</Text>
-              </View>
-            </View>
-
-            {/* Login Card */}
-            <View style={styles.loginCard}>
+            {/* Login Card - matches Stitch: white card with 32px top rounded corners */}
+            <View style={[styles.loginCard, { backgroundColor: colors.surfaceContainerLowest }]}>
               <View style={styles.formContainer}>
+                {/* Header - from Stitch */}
+                <View style={styles.headerSection}>
+                  <Text style={[styles.welcomeText, { color: colors.onSurface }]}>
+                    Welcome Back
+                  </Text>
+                  <Text style={[styles.subtitleText, { color: colors.onSurfaceVariant }]}>
+                    Sign in to continue
+                  </Text>
+                </View>
+
                 {/* Email Field */}
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Email Address</Text>
-                  <View style={styles.inputContainer}>
+                  <View style={[
+                    styles.inputContainer,
+                    { backgroundColor: colors.surfaceContainerHigh }
+                  ]}>
                     <MaterialIcons
                       name="mail"
                       size={20}
@@ -135,8 +126,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                       style={styles.inputIcon}
                     />
                     <TextInput
-                      style={styles.textInput}
-                      placeholder="name@company.com"
+                      style={[styles.textInput, { color: colors.onSurface }]}
+                      placeholder="Email address"
                       placeholderTextColor={colors.outline}
                       value={email}
                       onChangeText={setEmail}
@@ -149,13 +140,10 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
                 {/* Password Field */}
                 <View style={styles.inputGroup}>
-                  <View style={styles.passwordHeader}>
-                    <Text style={styles.label}>Password</Text>
-                    <TouchableOpacity>
-                      <Text style={styles.forgotPassword}>Forgot Password?</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.inputContainer}>
+                  <View style={[
+                    styles.inputContainer,
+                    { backgroundColor: colors.surfaceContainerHigh }
+                  ]}>
                     <MaterialIcons
                       name="lock"
                       size={20}
@@ -163,8 +151,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                       style={styles.inputIcon}
                     />
                     <TextInput
-                      style={styles.textInput}
-                      placeholder="••••••••"
+                      style={[styles.textInput, { color: colors.onSurface }]}
+                      placeholder="Password"
                       placeholderTextColor={colors.outline}
                       secureTextEntry={!showPassword}
                       value={password}
@@ -181,107 +169,69 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                       />
                     </Pressable>
                   </View>
+                  {/* Forgot Password - aligned right */}
+                  <TouchableOpacity style={styles.forgotPasswordContainer}>
+                    <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>
+                      Forgot Password?
+                    </Text>
+                  </TouchableOpacity>
                 </View>
 
-                {/* Action Buttons */}
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    onPress={handleLogin}
-                    activeOpacity={0.8}
+                {/* Login Button */}
+                <TouchableOpacity
+                  onPress={handleLogin}
+                  activeOpacity={0.8}
+                  style={styles.loginButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={[colors.primary, colors.primaryContainer]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.loginButton}
                   >
-                    <LinearGradient
-                      colors={[colors.primary, colors["primary-container"]]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.loginButton}
-                    >
-                      <Text style={styles.loginButtonText}>Login</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
+                    <Text style={[styles.loginButtonText, { color: colors.onPrimary }]}>
+                      Log In
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
 
-                  {/* Divider */}
-                  <View style={styles.divider}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>or</Text>
-                    <View style={styles.dividerLine} />
-                  </View>
-
-                  {/* SSO Button */}
-                  <TouchableOpacity
-                    style={styles.ssoButton}
-                    onPress={handleSSO}
-                    activeOpacity={0.7}
-                  >
-                    <Image
-                      source={{
-                        uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuDcDXWCoiS-VnEk3W5tzdNTMUiGBlKlq3nq4sYOrQAFtYowJjyiLxGrP4KMGJpeS1CHcXuf2UWXxDg0xqzUU5Zpf5hi6G9tRA8P4v6eHqS86C8T6oiM_G6Pr2XxGHxnRriUQx_VJdkhzxIsmXSAxlUkKjhguMobm9f7fNFgIwOMNBtEtcvf9R_FMDYzPK_-rkUTGlfN-GnirteP5LT5uCfyNlZ9Wtecq6uXb-NVWl_lkQ9nBphDX1dzHfQa9pxy0C6tqhZdkTPRGA",
-                      }}
-                      style={styles.googleLogo}
-                    />
-                    <Text style={styles.ssoButtonText}>Sign in with Single Sign-On</Text>
-                  </TouchableOpacity>
-
-                  {/* Demo Login Buttons */}
-                  <View style={styles.demoButtonsRow}>
-                    <TouchableOpacity
-                      style={styles.demoButton}
-                      onPress={handleEmployeeDemo}
-                      activeOpacity={0.7}
-                    >
-                      <MaterialIcons
-                        name="badge"
-                        size={16}
-                        color={colors.primary}
-                      />
-                      <Text style={styles.demoButtonText}>Employee</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.demoButton}
-                      onPress={handleTeamLeadDemo}
-                      activeOpacity={0.7}
-                    >
-                      <MaterialIcons
-                        name="supervisor-account"
-                        size={16}
-                        color={colors.primary}
-                      />
-                      <Text style={styles.demoButtonText}>Team Lead</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.demoButton}
-                      onPress={handleAdminDemo}
-                      activeOpacity={0.7}
-                    >
-                      <MaterialIcons
-                        name="admin-panel-settings"
-                        size={16}
-                        color={colors.primary}
-                      />
-                      <Text style={styles.demoButtonText}>Admin</Text>
-                    </TouchableOpacity>
-                  </View>
+                {/* Divider - matches Stitch "or" style */}
+                <View style={styles.divider}>
+                  <View style={[styles.dividerLine, { backgroundColor: colors.outlineVariant }]} />
+                  <Text style={[styles.dividerText, { color: colors.outline }]}>or</Text>
+                  <View style={[styles.dividerLine, { backgroundColor: colors.outlineVariant }]} />
                 </View>
-              </View>
-            </View>
 
-            {/* Footer Links */}
-            <View style={styles.footer}>
-              <View style={styles.footerLinks}>
-                <TouchableOpacity style={styles.footerLink}>
-                  <MaterialIcons
-                    name="contact-support"
-                    size={14}
-                    color={colors.primary}
+                {/* SSO Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.ssoButton,
+                    {
+                      backgroundColor: colors.surfaceContainerLow,
+                      borderColor: colors.outlineVariant,
+                    },
+                  ]}
+                  onPress={handleSSO}
+                  activeOpacity={0.7}
+                >
+                  <Image
+                    source={{
+                      uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuDcDXWCoiS-VnEk3W5tzdNTMUiGBlKlq3nq4sYOrQAFtYowJjyiLxGrP4KMGJpeS1CHcXuf2UWXxDg0xqzUU5Zpf5hi6G9tRA8P4v6eHqS86C8T6oiM_G6Pr2XxGHxnRriUQx_VJdkhzxIsmXSAxlUkKjhguMobm9f7fNFgIwOMNBtEtcvf9R_FMDYzPK_-rkUTGlfN-GnirteP5LT5uCfyNlZ9Wtecq6uXb-NVWl_lkQ9nBphDX1dzHfQa9pxy0C6tqhZdkTPRGA",
+                    }}
+                    style={styles.googleLogo}
                   />
-                  <Text style={styles.contactText}>Contact Support</Text>
+                  <Text style={[styles.ssoButtonText, { color: colors.onSurface }]}>
+                    Continue with Google
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity>
-                  <Text style={styles.privacyText}>Privacy Policy</Text>
-                </TouchableOpacity>
+
+                {/* Footer - Copyright */}
+                <View style={styles.footer}>
+                  <Text style={[styles.copyrightText, { color: colors.outline }]}>
+                    © 2024 Workforce Hub Operations. All Rights Reserved.
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.copyright}>
-                © 2024 Workforce Hub Operations. All Rights Reserved.
-              </Text>
             </View>
           </View>
         </View>
@@ -297,82 +247,57 @@ interface LoginScreenProps {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.surface,
   },
   keyboardView: {
     flex: 1,
   },
   mainContainer: {
     flex: 1,
-    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
+    paddingHorizontal: 16,
   },
   contentWrapper: {
     width: "100%",
     maxWidth: 440,
-    gap: 32,
-  },
-  brandSection: {
-    alignItems: "center",
-    gap: 12,
-  },
-  logoContainer: {
-    width: 64,
-    height: 64,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  titleContainer: {
-    alignItems: "center",
-    gap: 4,
-  },
-  title: {
-    fontFamily: "Manrope_800ExtraBold",
-    fontSize: 30,
-    color: colors.primary,
-  },
-  subtitle: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    fontWeight: "500",
-    color: colors["on-surface-variant"],
   },
   loginCard: {
-    backgroundColor: colors["surface-container-lowest"],
-    borderRadius: 12,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-    overflow: "hidden",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 8,
   },
   formContainer: {
-    padding: 32,
-    gap: 24,
+    padding: 24,
+    paddingBottom: 16,
+    gap: 20,
+  },
+  headerSection: {
+    gap: 4,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  welcomeText: {
+    fontFamily: "Manrope",
+    fontSize: 28,
+    fontWeight: "700",
+  },
+  subtitleText: {
+    fontFamily: "Inter",
+    fontSize: 14,
+    fontWeight: "400",
   },
   inputGroup: {
     gap: 8,
   },
-  label: {
-    fontFamily: fonts.label,
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors["on-surface"],
-  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors["surface-container-high"],
     borderRadius: 8,
     position: "relative",
   },
@@ -383,68 +308,57 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    height: 48,
+    height: 52,
     paddingLeft: 48,
-    paddingRight: 16,
-    fontFamily: fonts.body,
+    paddingRight: 48,
+    fontFamily: "Inter",
     fontSize: 14,
-    color: colors["on-surface"],
   },
-  passwordHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  forgotPasswordContainer: {
+    alignItems: "flex-end",
   },
-  forgotPassword: {
-    fontFamily: fonts.label,
+  forgotPasswordText: {
+    fontFamily: "Inter",
     fontSize: 12,
     fontWeight: "600",
-    color: colors.primary,
   },
   visibilityToggle: {
     position: "absolute",
     right: 16,
     zIndex: 1,
   },
-  buttonContainer: {
-    gap: 16,
-    paddingTop: 8,
+  loginButtonWrapper: {
+    marginTop: 4,
   },
   loginButton: {
-    height: 56,
+    height: 52,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.primary,
+    shadowColor: "#0037b0",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
   },
   loginButtonText: {
-    fontFamily: fonts.headline,
+    fontFamily: "Manrope",
     fontSize: 16,
     fontWeight: "700",
-    color: "#ffffff",
   },
   divider: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: 4,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors["outline-variant"],
-    opacity: 0.3,
   },
   dividerText: {
-    fontFamily: fonts.label,
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.outline,
-    textTransform: "uppercase",
-    letterSpacing: 1,
+    fontFamily: "Inter",
+    fontSize: 12,
+    fontWeight: "600",
     marginHorizontal: 16,
   },
   ssoButton: {
@@ -453,20 +367,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 12,
     height: 48,
-    backgroundColor: colors["surface-container-low"],
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors["outline-variant"],
   },
   googleLogo: {
     width: 20,
     height: 20,
   },
   ssoButtonText: {
-    fontFamily: fonts.body,
+    fontFamily: "Inter",
     fontSize: 14,
     fontWeight: "600",
-    color: colors["on-surface"],
   },
   demoButtonsRow: {
     flexDirection: "row",
@@ -479,50 +390,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     height: 44,
-    backgroundColor: colors["surface-container-lowest"],
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.primary,
   },
   demoButtonText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
+    fontFamily: "Inter",
+    fontSize: 12,
     fontWeight: "600",
-    color: colors.primary,
   },
   footer: {
     alignItems: "center",
-    gap: 24,
+    paddingTop: 16,
   },
-  footerLinks: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 32,
-  },
-  footerLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  contactText: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.primary,
-  },
-  privacyText: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors["on-surface-variant"],
-  },
-  copyright: {
-    fontFamily: fonts.label,
+  copyrightText: {
+    fontFamily: "Inter",
     fontSize: 11,
-    fontWeight: "700",
-    color: colors.outline,
-    textTransform: "uppercase",
-    letterSpacing: 1,
+    fontWeight: "500",
     textAlign: "center",
   },
 });

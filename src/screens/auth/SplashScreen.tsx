@@ -5,13 +5,12 @@ import {
   StyleSheet,
   Animated,
   Easing,
-  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { StackNavigationProp } from "@react-navigation/native-stack";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../../navigation/AuthStack";
 
-type SplashScreenNavigationProp = StackNavigationProp<
+type SplashScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
   "Splash"
 >;
@@ -20,183 +19,335 @@ interface Props {
   navigation: SplashScreenNavigationProp;
 }
 
-const COLORS = {
-  primary: "#24389c",
-  primaryDark: "#1a2a7a",
-  purple: "#6c34c4",
-  gold: "#f5c842",
-  white: "#ffffff",
-  silver: "#c4c9d4",
-  silverDark: "#8b90a0",
-  green: "#22c55e",
-};
+// Logo piece configuration — 4 triangles that form the two overlapping squares
+// Purple (back) square + Blue (front) square = overlapping logo
+const LOGO_SIZE = 52;
+const LOGO_RADIUS = 14;
+const HALF = LOGO_SIZE / 2;
 
-const MESH_OVERLAYS = [
-  // Purple top-right
-  { colors: ["#6c34c4", "transparent"] as const, start: { x: 0.9, y: 0 } as const, end: { x: 0.1, y: 1 } as const, opacity: 0.4 },
-  // Dark bottom-left
-  { colors: ["#0a1640", "transparent"] as const, start: { x: 0, y: 0.7 } as const, end: { x: 1, y: 0 } as const, opacity: 0.55 },
-  // Vertical blue center
-  { colors: ["#1e3599", "transparent"] as const, start: { x: 0.5, y: 0 } as const, end: { x: 0.5, y: 1 } as const, opacity: 0.25 },
-  // Top accent
-  { colors: ["#1a2a7a", "transparent"] as const, start: { x: 0, y: 0 } as const, end: { x: 1, y: 0.4 } as const, opacity: 0.5 },
+// Each piece: start offset (x, y), final position relative to center, rotation
+interface LogoPiece {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  startRotate: number;
+  endRotate: number;
+  color: string;
+}
+
+const PIECES: LogoPiece[] = [
+  // Purple back square - top-left fragment
+  {
+    startX: -HALF - 60,
+    startY: -HALF - 80,
+    endX: -HALF,
+    endY: -HALF,
+    startRotate: -45,
+    endRotate: 0,
+    color: "#6c34c4",
+  },
+  // Purple back square - bottom-right fragment
+  {
+    startX: HALF + 40,
+    startY: HALF + 60,
+    endX: HALF,
+    endY: HALF,
+    startRotate: 90,
+    endRotate: 0,
+    color: "#6c34c4",
+  },
+  // Blue front square - top-right fragment
+  {
+    startX: HALF + 80,
+    startY: -HALF - 50,
+    endX: HALF - 8,
+    endY: HALF - 8,
+    startRotate: 60,
+    endRotate: 0,
+    color: "#5B8DEF",
+  },
+  // Blue front square - bottom-left fragment
+  {
+    startX: -HALF - 50,
+    startY: HALF + 40,
+    endX: -HALF + 4,
+    endY: HALF + 4,
+    startRotate: -120,
+    endRotate: 0,
+    color: "#5B8DEF",
+  },
 ];
 
+const ANIM_CONFIG = {
+  ASSEMBLE_DURATION: 450,
+  ASSEMBLE_EASING: Easing.bezier(0.25, 0.46, 0.45, 0.94),
+  SCALE_PULSE_DURATION: 200,
+  TEXT_FADE_DURATION: 300,
+  TOTAL_DURATION: 2200,
+};
+
 export default function SplashScreen({ navigation }: Props) {
-  const spinAnim = useRef(new Animated.Value(0)).current;
-  const dotAnim = useRef(new Animated.Value(0)).current;
+  // Animation values for each piece
+  const pieceAnims = PIECES.map(() => ({
+    x: useRef(new Animated.Value(0)).current,
+    y: useRef(new Animated.Value(0)).current,
+    rotate: useRef(new Animated.Value(0)).current,
+    opacity: useRef(new Animated.Value(0)).current,
+  }));
+
+  // Logo container scale (for the pulse after assembly)
+  const logoScale = useRef(new Animated.Value(0)).current;
+
+  // Text animations
+  const appNameOpacity = useRef(new Animated.Value(0)).current;
+  const appNameTranslateY = useRef(new Animated.Value(15)).current;
+  const hubBadgeOpacity = useRef(new Animated.Value(0)).current;
+  const taglineOpacity = useRef(new Animated.Value(0)).current;
+
+  // Screen fade out
+  const screenOpacity = useRef(new Animated.Value(1)).current;
+
+  // Background pulse
+  const bgPulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Spinner rotation
-    Animated.loop(
-      Animated.timing(spinAnim, {
-        toValue: 1,
-        duration: 1400,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
-
-    // Pulsing green dot
+    // Background subtle pulse
     Animated.loop(
       Animated.sequence([
-        Animated.timing(dotAnim, {
+        Animated.timing(bgPulse, {
           toValue: 1,
-          duration: 900,
+          duration: 1200,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
-        Animated.timing(dotAnim, {
+        Animated.timing(bgPulse, {
           toValue: 0,
-          duration: 900,
+          duration: 1200,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
       ])
     ).start();
 
-    // Auto-navigate to Login after 3s
+    // Logo assembly — all pieces fly in simultaneously
+    const assemblyAnimations = PIECES.map((piece, i) => {
+      return Animated.parallel([
+        Animated.timing(pieceAnims[i].x, {
+          toValue: 1,
+          duration: ANIM_CONFIG.ASSEMBLE_DURATION,
+          easing: ANIM_CONFIG.ASSEMBLE_EASING,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pieceAnims[i].y, {
+          toValue: 1,
+          duration: ANIM_CONFIG.ASSEMBLE_DURATION,
+          easing: ANIM_CONFIG.ASSEMBLE_EASING,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pieceAnims[i].rotate, {
+          toValue: 1,
+          duration: ANIM_CONFIG.ASSEMBLE_DURATION,
+          easing: ANIM_CONFIG.ASSEMBLE_EASING,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pieceAnims[i].opacity, {
+          toValue: 1,
+          duration: ANIM_CONFIG.ASSEMBLE_DURATION * 0.6,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]);
+    });
+
+    // After assembly, logo scale pulse
+    const logoPulse = Animated.sequence([
+      Animated.timing(logoScale, {
+        toValue: 1,
+        duration: 0,
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoScale, {
+        toValue: 1,
+        duration: ANIM_CONFIG.ASSEMBLE_DURATION,
+        easing: ANIM_CONFIG.ASSEMBLE_EASING,
+        useNativeDriver: true,
+      }),
+      Animated.spring(logoScale, {
+        toValue: 1.06,
+        friction: 8,
+        tension: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(logoScale, {
+        toValue: 1,
+        friction: 6,
+        tension: 80,
+        useNativeDriver: true,
+      }),
+    ]);
+
+    // Staggered text reveal
+    const textReveal = Animated.sequence([
+      Animated.delay(ANIM_CONFIG.ASSEMBLE_DURATION + 80),
+      Animated.parallel([
+        Animated.timing(appNameOpacity, {
+          toValue: 1,
+          duration: ANIM_CONFIG.TEXT_FADE_DURATION,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(appNameTranslateY, {
+          toValue: 0,
+          duration: ANIM_CONFIG.TEXT_FADE_DURATION + 80,
+          easing: Easing.out(Easing.back(1.2)),
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.delay(120),
+      Animated.timing(hubBadgeOpacity, {
+        toValue: 1,
+        duration: 200,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.delay(80),
+      Animated.timing(taglineOpacity, {
+        toValue: 1,
+        duration: ANIM_CONFIG.TEXT_FADE_DURATION + 50,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]);
+
+    // Run all animations
+    Animated.parallel([...assemblyAnimations, logoPulse, textReveal], {
+      stopTogether: false,
+    }).start();
+
+    // Fade out and navigate after total animation duration
     const timer = setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Login" }],
+      Animated.timing(screenOpacity, {
+        toValue: 0,
+        duration: 400,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start(() => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Login" }],
+        });
       });
-    }, 3000);
+    }, ANIM_CONFIG.TOTAL_DURATION);
 
     return () => clearTimeout(timer);
-  }, [navigation, spinAnim, dotAnim]);
+  }, []);
 
-  const spin = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
-  });
+  // Interpolate piece positions
+  const getPieceStyle = (index: number) => {
+    const piece = PIECES[index];
+    const anim = pieceAnims[index];
+    return {
+      position: "absolute" as const,
+      width: HALF,
+      height: HALF,
+      opacity: anim.opacity,
+      transform: [
+        {
+          translateX: anim.x.interpolate({
+            inputRange: [0, 1],
+            outputRange: [piece.startX, piece.endX],
+          }),
+        },
+        {
+          translateY: anim.y.interpolate({
+            inputRange: [0, 1],
+            outputRange: [piece.startY, piece.endY],
+          }),
+        },
+        {
+          rotate: anim.rotate.interpolate({
+            inputRange: [0, 1],
+            outputRange: [`${piece.startRotate}deg`, `${piece.endRotate}deg`],
+          }),
+        },
+        {
+          scale: logoScale,
+        },
+      ],
+    };
+  };
 
-  const dotScale = dotAnim.interpolate({
+  const bgOpacity = bgPulse.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.7, 1.5],
-  });
-
-  const dotOpacity = dotAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.5, 1],
+    outputRange: [1, 0.85],
   });
 
   return (
-    <View style={styles.container}>
-      {/* Base gradient — deep navy to blue */}
-      <LinearGradient
-        colors={["#0d1b4b", "#1a2a7a", "#24389c"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+    <Animated.View style={[styles.container, { opacity: screenOpacity }]}>
+      {/* Base gradient with animated opacity */}
+      <Animated.View style={[styles.bgWrapper, { opacity: bgOpacity }]}>
+        <LinearGradient
+          colors={["#0d1b4b", "#1a2d6e", "#3d6dc7", "#5B8DEF"]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
 
-      {/* Mesh overlay 1 — purple top-right glow */}
-      <LinearGradient
-        colors={MESH_OVERLAYS[0].colors}
-        start={MESH_OVERLAYS[0].start}
-        end={MESH_OVERLAYS[0].end}
-        style={[StyleSheet.absoluteFill, { opacity: MESH_OVERLAYS[0].opacity }]}
-      />
-
-      {/* Mesh overlay 2 — dark bottom-left depth */}
-      <LinearGradient
-        colors={MESH_OVERLAYS[1].colors}
-        start={MESH_OVERLAYS[1].start}
-        end={MESH_OVERLAYS[1].end}
-        style={[StyleSheet.absoluteFill, { opacity: MESH_OVERLAYS[1].opacity }]}
-      />
-
-      {/* Mesh overlay 3 — vertical blue shaft */}
-      <LinearGradient
-        colors={MESH_OVERLAYS[2].colors}
-        start={MESH_OVERLAYS[2].start}
-        end={MESH_OVERLAYS[2].end}
-        style={[StyleSheet.absoluteFill, { opacity: MESH_OVERLAYS[2].opacity }]}
-      />
-
-      {/* Mesh overlay 4 — top blue sheen */}
-      <LinearGradient
-        colors={MESH_OVERLAYS[3].colors}
-        start={MESH_OVERLAYS[3].start}
-        end={MESH_OVERLAYS[3].end}
-        style={[StyleSheet.absoluteFill, { opacity: MESH_OVERLAYS[3].opacity }]}
-      />
+      {/* Ambient glow effects */}
+      <View style={styles.glowTopRight} />
+      <View style={styles.glowBottomLeft} />
 
       {/* Center content */}
       <View style={styles.centerContent}>
-        {/* Logo — two overlapping rounded squares */}
-        <View style={styles.logoContainer}>
-          {/* Back square — purple */}
-          <View style={styles.logoBack} />
-          {/* Front square — primary blue */}
-          <View style={styles.logoFront} />
-        </View>
+        {/* Logo — animated fragments */}
+        <Animated.View style={[styles.logoContainer, { transform: [{ scale: logoScale }] }]}>
+          {/* Piece 0: Purple top-left */}
+          <Animated.View style={[styles.logoPiece, getPieceStyle(0)]}>
+            <View style={[styles.pieceInner, styles.piecePurple, styles.pieceTL]} />
+          </Animated.View>
+
+          {/* Piece 1: Purple bottom-right */}
+          <Animated.View style={[styles.logoPiece, getPieceStyle(1)]}>
+            <View style={[styles.pieceInner, styles.piecePurple, styles.pieceBR]} />
+          </Animated.View>
+
+          {/* Piece 2: Blue top-right */}
+          <Animated.View style={[styles.logoPiece, getPieceStyle(2)]}>
+            <View style={[styles.pieceInner, styles.pieceBlue, styles.pieceTR]} />
+          </Animated.View>
+
+          {/* Piece 3: Blue bottom-left */}
+          <Animated.View style={[styles.logoPiece, getPieceStyle(3)]}>
+            <View style={[styles.pieceInner, styles.pieceBlue, styles.pieceBL]} />
+          </Animated.View>
+        </Animated.View>
 
         {/* "hub" pill badge */}
-        <View style={styles.hubBadge}>
+        <Animated.View style={[styles.hubBadge, { opacity: hubBadgeOpacity }]}>
           <Text style={styles.hubBadgeText}>hub</Text>
-        </View>
+        </Animated.View>
 
         {/* App name */}
-        <Text style={styles.appName}>Workforce Hub</Text>
+        <Animated.View
+          style={[
+            styles.textWrapper,
+            {
+              opacity: appNameOpacity,
+              transform: [{ translateY: appNameTranslateY }],
+            },
+          ]}
+        >
+          <Text style={styles.appName}>Workforce Hub</Text>
+        </Animated.View>
 
-        {/* Tagline — gold */}
-        <Text style={styles.tagline}>OPERATIONAL EXCELLENCE</Text>
+        {/* Tagline */}
+        <Animated.Text style={[styles.tagline, { opacity: taglineOpacity }]}>
+          OPERATIONAL EXCELLENCE
+        </Animated.Text>
       </View>
-
-      {/* Bottom status bar */}
-      <View style={styles.bottomBar}>
-        {/* Left — Secure Node Active */}
-        <View style={styles.statusLeft}>
-          <Animated.View
-            style={[
-              styles.greenDot,
-              {
-                transform: [{ scale: dotScale }],
-                opacity: dotOpacity,
-              },
-            ]}
-          />
-          <Text style={styles.statusText}>Secure Node Active</Text>
-        </View>
-
-        {/* Center — spinner + initializing text */}
-        <View style={styles.statusCenter}>
-          <Animated.View style={{ transform: [{ rotate: spin }] }}>
-            {/* Spinner arc — half ring */}
-            <View style={styles.spinnerWrapper}>
-              <View style={styles.spinnerArc} />
-              <View style={[styles.spinnerArc, styles.spinnerArcDim]} />
-            </View>
-          </Animated.View>
-          <Text style={styles.initText}>INITIALIZING SYSTEMS</Text>
-        </View>
-
-        {/* Right — version */}
-        <Text style={styles.versionText}>Ver 4.0.2-B</Text>
-      </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -204,36 +355,71 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  bgWrapper: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  glowTopRight: {
+    position: "absolute",
+    top: -100,
+    right: -100,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: "#6c34c4",
+    opacity: 0.15,
+  },
+  glowBottomLeft: {
+    position: "absolute",
+    bottom: -80,
+    left: -80,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: "#3d6dc7",
+    opacity: 0.2,
+  },
   centerContent: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
   logoContainer: {
-    width: 72,
-    height: 72,
-    marginBottom: 18,
+    width: LOGO_SIZE,
+    height: LOGO_SIZE,
+    marginBottom: 20,
   },
-  logoBack: {
+  logoPiece: {
     position: "absolute",
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+    width: HALF,
+    height: HALF,
+  },
+  pieceInner: {
+    width: "100%",
+    height: "100%",
+    borderRadius: LOGO_RADIUS / 2,
+  },
+  piecePurple: {
     backgroundColor: "#6c34c4",
-    top: 10,
-    left: 12,
-    opacity: 0.9,
   },
-  logoFront: {
-    position: "absolute",
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: "#24389c",
-    top: 4,
-    left: 4,
-    borderWidth: 1.5,
+  pieceBlue: {
+    backgroundColor: "#5B8DEF",
+    borderWidth: 1,
     borderColor: "rgba(255,255,255,0.18)",
+  },
+  pieceTL: {
+    borderTopLeftRadius: LOGO_RADIUS,
+  },
+  pieceBR: {
+    borderBottomRightRadius: LOGO_RADIUS,
+  },
+  pieceTR: {
+    borderTopRightRadius: LOGO_RADIUS,
+  },
+  pieceBL: {
+    borderBottomLeftRadius: LOGO_RADIUS,
+  },
+  textWrapper: {
+    alignItems: "center",
   },
   hubBadge: {
     backgroundColor: "rgba(196, 201, 212, 0.12)",
@@ -266,73 +452,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 4,
     fontFamily: "Inter_600SemiBold",
-  },
-  bottomBar: {
-    position: "absolute",
-    bottom: 48,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 28,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  statusLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    flex: 1,
-  },
-  greenDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: "#22c55e",
-  },
-  statusText: {
-    color: "#8b90a0",
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-  },
-  statusCenter: {
-    alignItems: "center",
-    gap: 8,
-    flex: 1,
-  },
-  spinnerWrapper: {
-    width: 20,
-    height: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  spinnerArc: {
-    position: "absolute",
-    width: 20,
-    height: 10,
-    borderRadius: 10,
-    borderTopWidth: 2,
-    borderColor: "#c4c9d4",
-  },
-  spinnerArcDim: {
-    bottom: 0,
-    top: undefined,
-    borderTopWidth: 2,
-    borderBottomWidth: 0,
-    borderColor: "#8b90a0",
-    opacity: 0.4,
-  },
-  initText: {
-    color: "#c4c9d4",
-    fontSize: 8,
-    fontWeight: "500",
-    letterSpacing: 1.5,
-    fontFamily: "Inter_500Medium",
-  },
-  versionText: {
-    color: "#8b90a0",
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-    flex: 1,
-    textAlign: "right",
   },
 });
